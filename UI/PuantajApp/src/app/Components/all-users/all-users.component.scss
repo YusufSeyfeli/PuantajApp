@@ -1,0 +1,18 @@
+img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.jobunit-placeholder {
+  padding: 0.25rem;
+}
+input::file-selector-button {
+  font-weight: bold;
+  color: white;
+  padding: 1em;
+  border: thin solid grey;
+  border-radius: 9px;
+  margin-top: 1rem;
+  background-color: #2563EB;
+}

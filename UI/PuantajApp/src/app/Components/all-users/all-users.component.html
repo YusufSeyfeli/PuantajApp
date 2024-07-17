@@ -1,0 +1,171 @@
+<div class="grid">
+  <div class="col-12">
+    <div class="card px-6 py-6">
+      <p-toast></p-toast>
+      <p-toolbar styleClass="mb-4">
+        <ng-template pTemplate="left">
+          <div class="my-2">
+            <!--<button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>-->
+            <button pButton pRipple label="Toplu Sil" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedAllStudent()" [disabled]="!selectedUsers || !selectedUsers.length"></button>
+          </div>
+        </ng-template>
+
+
+      </p-toolbar>
+
+      <p-table #dt [value]="allUser"
+               [columns]="cols"
+               responsiveLayout="scroll"
+               [rows]="10"
+               [globalFilterFields]="['nameSurname']"
+               [paginator]="true"
+               [rowsPerPageOptions]="[10,20,30]"
+               [showCurrentPageReport]="true"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+               [(selection)]="selectedUsers" selectionMode="multiple"
+               [rowHover]="true" dataKey="userGuidId">
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 class="m-0">Kullanıcılar</h5>
+            <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)"
+                                   placeholder="Arama..."  class="w-full sm:w-auto"/>
+                        </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th pSortableColumn="image"></th>
+            <th pSortableColumn="nameSurname">İsim <p-sortIcon field="nameSurname"></p-sortIcon></th>
+            <th pSortableColumn="email">E-Posta <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="jobUnit">Birimi </th>
+            <th pSortableColumn="operationClaim">Yetkileri </th>
+            <th class="col-4">Düzenleme</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+          <tr>
+            <td>
+              <p-tableCheckbox [value]="user"></p-tableCheckbox>
+            </td>
+            <td style="width:14%; min-width:10rem;"><span class="p-column-title">Image</span>
+              <img src="data:image/png;base64,{{user.imageByte}}" alt="">
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Name</span>
+              {{user.nameSurname}}
+            </td>
+
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Job Unit</span>
+              {{ user.email }}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <div class="flex flex-wrap align-items-center" *ngFor="let item of user.jobUnitDtos">
+                <p-chip label="{{item.jobUnitName}}" styleClass="m-1"></p-chip>
+              </div>
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <div class="flex flex-wrap align-items-center" *ngFor="let item of user.operationClaimGetListDtos">
+                <p-chip label="{{item.operationClaimName}}" styleClass="m-1"></p-chip>
+              </div>
+            </td>
+            <td>
+              <div class="flex">
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editStudent(user)"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteStudent(user)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <p-dialog [(visible)]="userDialog" [style]="{width: '550px'}" header="Kullanıcı {{user.nameSurname}}" [modal]="true" class="p-fluid">
+      <ng-template pTemplate="content">
+
+        <div class="field">
+          <label for="name">İsim</label>
+          <input type="text" pInputText id="name" name="myUserName"
+                 [(ngModel)]="user.nameSurname" required autofocus
+                 [ngClass]="{'ng-invalid ng-dirty' : submitted && !user.nameSurname}" />
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !user.nameSurname">İsim Zorunludur.</small>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" pInputText id="email" name="myUserEmail"
+                 [(ngModel)]="user.email" required autofocus
+                 [ngClass]="{'ng-invalid ng-dirty' : submitted && !user.email}" />
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !user.email">Email Zorunludur.</small>
+        </div>
+
+
+        <div class="field">
+          <label >Çalıştığı Birim</label>
+          <p-multiSelect appendTo="body"
+                         [options]="allJobUnit"
+                         [(ngModel)]="filteredJobUnit"
+                         placeholder="Bir yada birden fazla Birim seçiniz"
+                         optionLabel="jobUnitName" class="multiselect-custom" display="chip">
+            <ng-template let-JobUnit pTemplate="item">
+              <div class="flex align-items-center">
+                <span class="ml-2">{{JobUnit.jobUnitName}}</span>
+              </div>
+            </ng-template>
+          </p-multiSelect>
+        </div>
+        <div class="field">
+          <label >Yetkileri</label>
+          <p-multiSelect appendTo="body"
+                         [options]="allOperationClaim"
+                         [(ngModel)]="selectedMultiOperation"
+                         placeholder="Bir yada birden fazla yetki seçiniz"
+                         optionLabel="operationClaimName" class="multiselect-custom" display="chip">
+            <ng-template let-OperationClaim pTemplate="item">
+              <div class="flex align-items-center">
+                <span class="ml-2">{{OperationClaim.operationClaimName}}</span>
+              </div>
+            </ng-template>
+          </p-multiSelect>
+        </div>
+
+        <div class="field flex flex-column">
+          <label for="myphoto">Fotoğraf</label>
+          <input id="myphoto" type="file" name="myphoto" accept="image/png, image/jpeg" (change)="getBase64($event)" />
+        </div>
+
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <button pButton pRipple label="Vazgeç" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Kaydet" icon="pi pi-check" class="p-button-text" (click)="saveMyUser()"></button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="deleteUserDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span *ngIf="user"> <b>{{user.nameSurname}}</b> Kullanıcısını silmekte emin misiniz?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Hayır" (click)="deleteUserDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Evet" (click)="confirmDelete()"></button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="deleteallUserDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span>Seçilen Kullanıcıları silmekte emin misiniz?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Hayır" (click)="deleteallUserDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Evet" (click)="confirmDeleteSelected()"></button>
+      </ng-template>
+    </p-dialog>
+  </div>
+</div>

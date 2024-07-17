@@ -1,0 +1,122 @@
+<div class="grid">
+  <div class="col-12">
+    <div class="card px-6 py-6">
+      <p-toast></p-toast>
+      <p-toolbar styleClass="mb-4">
+        <ng-template pTemplate="left">
+          <div class="my-2">
+            <button pButton pRipple label="Oluştur" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+            <button pButton pRipple label="Toplu sil" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelectedHolidays()" [disabled]="!selectedHo || !selectedHo.length"></button>
+          </div>
+        </ng-template>
+
+
+      </p-toolbar>
+
+      <p-table #dt [value]="holidays" [columns]="cols" responsiveLayout="scroll" [rows]="10"
+               [globalFilterFields]="['holidayName']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]"
+               [showCurrentPageReport]="true"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+               [(selection)]="selectedHo" selectionMode="multiple" [rowHover]="true" dataKey="holidayGuidId">
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 class="m-0">Tatiller</h5>
+            <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..."  class="w-full sm:w-auto"/>
+                        </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th pSortableColumn="holidayName" class="col-4">İsim<p-sortIcon field="holidayName"></p-sortIcon></th>
+            <th pSortableColumn="FirstDate" class="col-4">Başlangıç Tarihi</th>
+            <th pSortableColumn="FinishDate" class="col-4">Bitiş Tarihi</th>
+            <th class="col-4">Düzenleme</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-holiday>
+          <tr>
+            <td>
+              <p-tableCheckbox [value]="holiday"></p-tableCheckbox>
+            </td>
+
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">İsim</span>
+              {{holiday.holidayName}}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Başlangıç Tarihi</span>
+              {{formatDate(holiday.holidayFirstDate)}}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Bitiş Tarihi</span>
+              {{formatDate(holiday.holidayFinishDate)}}
+            </td>
+
+            <td>
+              <div class="flex">
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editHoliday(holiday)"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteHoliday(holiday)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <p-dialog [(visible)]="holidayDialog" [style]="{width: '450px'}" header="Tatil" [modal]="true"  class="p-fluid">
+      <ng-template pTemplate="content">
+
+        <div class="field">
+          <label for="name">İsim</label>
+          <input type="text" pInputText id="name" [(ngModel)]="myholiday.holidayName" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !myholiday.holidayName}" />
+
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myholiday.holidayName">İsim zorunludur.</small>
+        </div>
+        <div class="field">
+          <label for="name">Başlangıç Tarihi</label>
+          <p-calendar appendTo="body" [(ngModel)]="myholiday.holidayFirstDate" [showButtonBar]="true" dateFormat="dd/mm/yy" inputId="icon" [showIcon]="true"></p-calendar>
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myholiday.holidayFirstDate">Başlangıç tarihi zorunludur.</small>
+        </div>
+        <div class="field">
+          <label for="name">Bitiş</label>
+          <p-calendar appendTo="body" [(ngModel)]="myholiday.holidayFinishDate" [showButtonBar]="true" dateFormat="dd/mm/yy" inputId="icon" [showIcon]="true"></p-calendar>
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myholiday.holidayFinishDate">Bitiş tarihi zorunludur.</small>
+        </div>
+
+
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <button pButton pRipple label="Vazgeç" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Kaydet" icon="pi pi-check" class="p-button-text" (click)="saveHoliday()"></button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="deleteholidayDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span *ngIf="myholiday"> <b>{{myholiday.holidayName}}</b>silmekte emin misiniz?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Hayır" (click)="deleteholidayDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Evet" (click)="confirmDelete()"></button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="deleteAllholidayDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span>Seçilenleri silmekte emin misiniz?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="Hayır" (click)="deleteAllholidayDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Evet" (click)="confirmDeleteSelected()"></button>
+      </ng-template>
+    </p-dialog>
+  </div>
+</div>

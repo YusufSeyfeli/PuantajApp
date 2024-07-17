@@ -1,0 +1,43 @@
+<div class="user-card">
+  <div class="user-card-img">
+    <img src="data:image/png;base64,{{user.imageByte}}" alt="">
+  </div>
+  <div class="user-card-info">
+    <h2>{{ user.nameSurname }}</h2>
+    <div class="flex" ><span>Email:</span> <p>{{ user.email }}</p></div>
+    <div class="flex"><span>Departman:</span> <p *ngFor="let dep of user.operationClaimGetListDtos">{{ dep.operationClaimName }} </p></div>
+    <div class="flex" ><span>Birimi:</span><p *ngFor="let unit of user.jobUnitDtos">{{ unit.jobUnitName }} </p> </div>
+    <br>
+    <a pButton pRipple class="p-button-rounded p-button-warning mb-2" (click)="openNew()">
+      <i style=" margin-right: 5px;" class="pi pi-pencil"></i>
+      <span >Şifre Değiştir</span>
+    </a>
+  </div>
+</div>
+<p-dialog [(visible)]="userInfoDialog" style="width: 100%" header="Mevcut Şifre Değiştir: " [modal]="true" class="p-fluid">
+  <ng-template pTemplate="content">
+
+    <div class="field">
+      <label for="currentpassword">Önceki Şifre</label>
+      <input type="password" pInputText id="currentpassword" [(ngModel)]="changePassword.currentPassword" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !changePassword.currentPassword}" />
+      <small class="ng-dirty ng-invalid" *ngIf="submitted && !changePassword.currentPassword">Name is required.</small>
+    </div>
+    <div class="field">
+      <label for="newpassword">Yeni Şifre</label>
+      <input type="password" pInputText id="newpassword" [(ngModel)]="changePassword.newPassword" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !changePassword.newPassword}" />
+      <small class="ng-dirty ng-invalid" *ngIf="submitPass && !changePassword.newPassword">{{errorMessage}}</small>
+    </div>
+    <div class="field">
+      <label for="againnewpassword">Yeni Şifre Tekrar</label>
+      <input type="password" pInputText id="againnewpassword" [(ngModel)]="againNewPassword" required autofocus [ngClass]="{'ng-invalid ng-dirty' : submitted && !againNewPassword}" />
+      <small class="ng-dirty ng-invalid" *ngIf="submitted && !againNewPassword">Password is required.</small>
+    </div>
+
+
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Vazgeç" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+    <button pButton pRipple label="Kaydet" icon="pi pi-check" class="p-button-text" (click)="ChangePassword()"></button>
+  </ng-template>
+</p-dialog>

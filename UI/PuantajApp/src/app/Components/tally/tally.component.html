@@ -1,0 +1,162 @@
+<div class="grid">
+  <div class="col-12">
+    <div class="card px-6 py-6">
+      <p-toast></p-toast>
+      <p-toolbar styleClass="mb-4">
+        <ng-template pTemplate="left">
+          <div class="my-2">
+            <button pButton pRipple label="Yeni" icon="pi pi-plus"
+                    class="p-button-success mr-2" (click)="openNew()"></button>
+
+            <button pButton pRipple label="Toplu Sil" icon="pi pi-trash" class="p-button-danger"
+                    (click)="deleteSelectedTallies()" [disabled]="!selectedT || !selectedT.length"></button>
+
+          </div>
+        </ng-template>
+        <ng-template pTemplate="right">
+          <div class="my-2">
+            <button pButton pRipple label="Öğrenci Ders Programını Güncelle" icon="pi pi-refresh"
+                    class="p-button-info mr-2" (click)="Refresh()"></button>
+            <!--<app-monthlyplan [studentId]="studentId" [receivedData]="filterTally"></app-monthlyplan>-->
+          </div>
+        </ng-template>
+      </p-toolbar>
+      <p-toolbar styleClass="mb-4">
+        <ng-template pTemplate="left">
+          <div *ngIf="filterMonth" class="">
+            <h5 class="m-0">Gösterilen ay: {{ filterMonth }} </h5>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="right">
+          <span class="p-float-label">
+            <p-calendar [(ngModel)]="filterDate" inputId="birth_date"  view="month" dateFormat="mm/yy" [readonlyInput]="true"></p-calendar>
+            <label for="birth_date">Filtre Tarihi</label>
+            <button pButton pRipple label="Göster"
+                    class="p-button-help mr-2" (click)="FilterDate()"></button>
+          </span>
+        </ng-template>
+      </p-toolbar>
+
+      <p-table #dt [value]="filterTally" [columns]="cols" responsiveLayout="scroll" [rows]="10"
+               [globalFilterFields]="['jobDate']" [paginator]="true" [rowsPerPageOptions]="[10,20,30]"
+               [showCurrentPageReport]="true"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+               [(selection)]="selectedT" selectionMode="multiple" [rowHover]="true" dataKey="tallyGuidId">
+
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 class="m-0">Puantajlar</h5>
+            <span class="block mt-2 md:mt-0 p-input-icon-left">
+              <i class="pi pi-search"></i>
+              <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Arama..."  class="w-full sm:w-auto"/>
+            </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th pSortableColumn="jobDate" class="col-4">Çalıştığı Gün<p-sortIcon field="workDay"></p-sortIcon></th>
+            <th pSortableColumn="firstDateTally" class="col-4">Başlangıç Saati<p-sortIcon field="firsdate"></p-sortIcon></th>
+            <th pSortableColumn="finishDateTally" class="col-4">Bitiş Saati<p-sortIcon field="finishDate"></p-sortIcon></th>
+            <th pSortableColumn="countHourToNow" class="col-4">Toplam<p-sortIcon field="CountHour"></p-sortIcon></th>
+            <th class="col-4">Düzenle</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-Tally>
+          <tr>
+            <td>
+              <p-tableCheckbox [value]="Tally"></p-tableCheckbox>
+            </td>
+
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Çalıştığı Gün</span>
+              {{formatDate(Tally.jobDate)}}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Başlangıç Saati</span>
+              {{formatHour(Tally.firstDate)}}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Bitiş Saati</span>
+              {{formatHour(Tally.finishDate)}}
+            </td>
+            <td style="width:14%; min-width:10rem;">
+              <span class="p-column-title">Toplam</span>
+              {{Tally.countHour}}
+            </td>
+
+            <td>
+              <div class="flex">
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editTally(Tally)"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteTally(Tally)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <p-dialog [(visible)]="TallyDialog" [style]="{width: '450px'}" header="Puantaj Detayı" [modal]="true"  class="p-fluid">
+      <ng-template pTemplate="content">
+        <div class="field">
+          <label for="JobDate">Çalıştığı gün</label>
+          <p-calendar id="JobDate" title="From" appendTo="body" [(ngModel)]="myTally.jobDate" [readonlyInput]="false" [showButtonBar]="true" dateFormat="dd/mm/yy" inputId="icon" [showIcon]="true"></p-calendar>
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myTally.jobDate">First Date is required.</small>
+        </div>
+        <div class="field">
+          <label for="FirstDate">Başlama Saati</label>
+          <p-calendar id="FirstDate" appendTo="body"
+                      [timeOnly]="true"
+                      [showTime]="true"
+                      hourFormat="24"
+                      [(ngModel)]="myTally.FirstDateTally"
+                      [showButtonBar]="true" inputId="icon" [showIcon]="true"></p-calendar>
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myTally.FirstDateTally">First Date is required.</small>
+        </div>
+        <div class="field">
+          <label for="FinishDate">Çıkış Saati</label>
+          <p-calendar id="FinishDate" appendTo="body"
+                      [timeOnly]="true"
+                      [showTime]="true"
+                      hourFormat="24"
+                      [(ngModel)]="myTally.FinishDateTally"
+                      [showButtonBar]="true"
+                      dateFormat="dd/mm/yy" inputId="icon" [showIcon]="true"></p-calendar>
+          <small class="ng-dirty ng-invalid" *ngIf="submitted && !myTally.FinishDateTally">First Date is required.</small>
+        </div>
+
+
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <button pButton pRipple label="Vazgeç" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Kaydet" icon="pi pi-check" class="p-button-text" (click)="saveTally()"></button>
+      </ng-template>
+    </p-dialog>
+
+
+    <p-dialog [(visible)]="deleteTallyDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span *ngIf="myTally"> <b>{{myTally.jobDate}} puantajını silmekte emin misiniz</b>?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteTallyDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog [(visible)]="deleteAllTallyDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+      <div class="flex align-items-center justify-content-center">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+        <span>Seçilen Puantajları silmekte emin misiniz?</span>
+      </div>
+      <ng-template pTemplate="footer">
+        <button pButton pRipple icon="pi pi-times" class="p-button-text" label="No" (click)="deleteAllTallyDialog = false"></button>
+        <button pButton pRipple icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+      </ng-template>
+    </p-dialog>
+  </div>
+</div>
